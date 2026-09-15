@@ -1,0 +1,8 @@
+{
+  "name": "chatmol",
+  "version": "0.9.0",
+  "description": "ChatMol Lab bundled plugin: computational biology skills and the WeMol subagents (wemol-docs, wemol-monitor).",
+  "author": { "name": "ChatMol Team" },
+  "skills": "./skills/",
+  "agents": "./agents/"
+}

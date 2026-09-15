@@ -1,0 +1,22 @@
+import { afterEach, expect, it, vi } from "vitest";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
+import { captureLlmDiagnostic } from "./llm-diagnostics";
+let dir = "";
+afterEach(() => { vi.unstubAllEnvs(); if (dir) rmSync(dir, { recursive: true, force: true }); });
+it("captures full request only when opted in and removes configured secrets", () => {
+  dir = mkdtempSync(join(tmpdir(), "llm-capture-test-"));
+  vi.stubEnv("CHATMOL_LLM_DIAGNOSTICS_DIR", "");
+  captureLlmDiagnostic("request", { body: "ignored" });
+  expect(readdirSync(dir)).toHaveLength(0);
+  vi.stubEnv("CHATMOL_LLM_DIAGNOSTICS_DIR", dir);
+  const prompt = "x".repeat(17340);
+  captureLlmDiagnostic("request", { body: { system: prompt, api_key: "secret", messages: ["a private-key b"] } }, ["private-key"]);
+  const file = join(dir, readdirSync(dir)[0]);
+  const content = readFileSync(file, "utf8");
+  expect(JSON.parse(content).body.system).toBe(prompt);
+  expect(content).not.toContain("private-key");
+  expect(content).not.toContain('"secret"');
+  if (process.platform !== "win32") expect(statSync(file).mode & 0o777).toBe(0o600);
+});

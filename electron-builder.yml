@@ -1,0 +1,85 @@
+appId: org.cloudmol.chatmol-lab
+# Without a Developer ID, re-sign the bundle ad-hoc; see the script for why.
+afterPack: scripts/adhoc-sign-mac.mjs
+productName: ChatMol Lab
+directories:
+  output: dist
+  buildResources: build
+files:
+  - electron-dist/main.js
+  - electron-dist/preload.js
+  - package.json
+extraMetadata:
+  main: electron-dist/main.js
+asar: true
+asarUnpack:
+  - "**/*.node"
+extraResources:
+  - from: web/.next/standalone
+    to: standalone
+    filter:
+      - "**/*"
+  - from: web/.next/static
+    to: static
+    filter:
+      - "**/*"
+  - from: web/public
+    to: public
+    filter:
+      - "**/*"
+  - from: web/prisma
+    to: prisma
+    filter:
+      - "**/*"
+  - from: web/mcp-servers
+    to: mcp-servers
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+  - from: web/analysis
+    to: analysis
+    filter:
+      - "**/*"
+      - "!**/__pycache__/**"
+  - from: plugins
+    to: plugins
+    filter:
+      - "**/*"
+  - from: build/runtime
+    to: runtime
+    filter:
+      - "**/*"
+protocols:
+  - name: ChatMol Lab
+    schemes:
+      - chatmol
+mac:
+  category: public.app-category.education
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  target:
+    - target: dmg
+      arch:
+        - arm64
+win:
+  icon: build/icon_1024.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+dmg:
+  # Pin the installer filename here so no workflow has to hardcode a version.
+  artifactName: chatmol-lab-${version}-mac-${arch}.${ext}
+nsis:
+  artifactName: chatmol-lab-${version}-win-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Science

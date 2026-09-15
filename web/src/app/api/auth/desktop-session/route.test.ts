@@ -1,0 +1,25 @@
+import { afterEach, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
+vi.mock("@/lib/auth", () => ({ auth: vi.fn(async () => ({ user: { id: "local-workspace" } })) }));
+vi.mock("@/lib/settings", () => ({ saveDesktopSyncToken: vi.fn() }));
+import { saveDesktopSyncToken } from "@/lib/settings";
+import { GET, POST } from "./route";
+afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.clearAllMocks(); });
+it("requires local initiation, consumes state once, and connects without replacing the local cookie", async () => {
+  vi.stubEnv("CHATMOL_DEPLOYMENT", "local");
+  const url = "http://localhost:3000/api/auth/desktop-session";
+  expect((await POST(new NextRequest(url, { method: "POST", headers: { Origin: "https://evil.example" } }))).status).toBe(403);
+  const start = await POST(new NextRequest(url, { method: "POST", headers: { Origin: "http://localhost:3000" } }));
+  const login = new URL((await start.json()).url);
+  const fetchMock = vi.fn(async () => new Response(JSON.stringify({ syncToken: "cloud-token" }), { status: 200 }));
+  vi.stubGlobal("fetch", fetchMock);
+  const callback = `${url}?code=${"a".repeat(64)}&state=${login.searchParams.get("state")}`;
+  expect((await GET(new NextRequest(`${url}?code=${"a".repeat(64)}&state=wrong`))).status).toBe(401);
+  expect(fetchMock).not.toHaveBeenCalled();
+  const success = await GET(new NextRequest(callback));
+  expect(success.status).toBe(307);
+  expect(success.headers.get("set-cookie")).toBeNull();
+  expect(saveDesktopSyncToken).toHaveBeenCalledWith("cloud-token");
+  expect((await GET(new NextRequest(callback))).status).toBe(401);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});

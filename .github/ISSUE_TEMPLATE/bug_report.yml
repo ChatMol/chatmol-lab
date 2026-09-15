@@ -1,0 +1,46 @@
+name: Bug report
+description: Something in ChatMol Lab behaves incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not paste API keys, private research data, or
+        patient-identifiable information. Redact them from logs first.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ChatMol Lab version
+      placeholder: "1.0.0, or a commit hash for a source build"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: How are you running it
+      options:
+        - macOS installer (Apple silicon)
+        - Windows installer (x64)
+        - Source checkout (npm run dev)
+        - Source checkout (npm run electron:dev)
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model provider and model
+      description: Which provider and model were configured in Settings.
+      placeholder: "e.g. OpenAI / gpt-5.1, or Ollama / llama3"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Tool results, console errors, or agent trace. Redact credentials.
+      render: text

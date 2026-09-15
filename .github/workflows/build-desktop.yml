@@ -1,0 +1,134 @@
+name: build-desktop
+
+# Pushing a tag like v1.0.0 builds both installers and opens a draft GitHub
+# Release with them attached. Pushes to main only build; the artifacts they
+# leave on the run page expire after 90 days and need a GitHub login, so they
+# are for debugging, not for users.
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+        working-directory: web
+      - run: npm test
+      - run: npm run lint
+      - run: npm run harness:verify
+      - run: npm run build
+      # Build success says nothing about whether the server boots. See the script.
+      - run: npm run smoke:standalone
+
+  package:
+    if: github.event_name != 'pull_request'
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: mac
+            builder_args: --mac dmg --arm64
+            installer: dist/*.dmg
+            artifact_name: installer-macos-arm64
+          - os: windows-latest
+            target: win
+            builder_args: --win nsis --x64
+            installer: dist/*.exe
+            artifact_name: installer-windows-x64
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+        working-directory: web
+      - run: npm run build
+      - run: npm run electron:compile
+      - run: npm run electron:template-db
+      - run: npm run electron:runtime
+        env:
+          RUNTIME_TARGET: ${{ matrix.target }}
+      - name: Package installer
+        # bash on every runner: PowerShell mis-parses electron-builder's flags.
+        shell: bash
+        run: npx electron-builder ${{ matrix.builder_args }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      # A tag publishes straight to the release. Routing 500 MB a run through
+      # artifact storage filled the account's quota and blocked uploads for
+      # hours at a time; the release is where the installers belong anyway.
+      - name: Attach the installer to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes="docs/releases/${GITHUB_REF_NAME}.md"
+          if [ -f "$notes" ]; then
+            note_args=(--notes-file "$notes")
+          else
+            note_args=(--generate-notes)
+          fi
+          # Both matrix jobs race to get here; whichever loses just sees the
+          # release already there. Draft because the installers are unsigned —
+          # drop --draft to publish straight from the tag.
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "ChatMol Lab ${GITHUB_REF_NAME#v}" \
+              --draft \
+              "${note_args[@]}" || gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null
+          fi
+          gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber ${{ matrix.installer }}
+
+      # Only for pushes to main, where there is no release to attach to.
+      - uses: actions/upload-artifact@v4
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        with:
+          name: ${{ matrix.artifact_name }}
+          # Only the installer. `dist/*` also picks up the unpacked app
+          # directory and blockmaps, which triples the upload for nothing.
+          path: ${{ matrix.installer }}
+          if-no-files-found: error
+          retention-days: 1
+
+  checksums:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish SHA256SUMS for what the release actually holds
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --pattern '*.dmg' --pattern '*.exe' --dir installers
+          cd installers
+          sha256sum -- * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber SHA256SUMS.txt

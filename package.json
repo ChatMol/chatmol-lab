@@ -1,0 +1,45 @@
+{
+  "name": "chatmol-lab",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron-dist/main.js",
+  "description": "ChatMol Lab - AI Research Assistant for Computational Biology & Protein Design",
+  "scripts": {
+    "dev": "cd web && npm run dev",
+    "build": "cd web && npm run build",
+    "start": "cd web && npm run start",
+    "lint": "cd web && npm run lint",
+    "test": "cd web && npm test",
+    "harness:verify": "node scripts/harness-verify.mjs",
+    "smoke:standalone": "node scripts/smoke-standalone.mjs",
+    "setup": "bash scripts/setup.sh",
+    "electron:compile": "cd electron && npx tsc",
+    "electron:template-db": "node scripts/create-template-db.mjs",
+    "electron:runtime": "node scripts/prepare-desktop-runtime.mjs",
+    "electron:dev": "npm run electron:compile && electron .",
+    "electron:build": "npm run build && npm run electron:compile && npm run electron:template-db && npm run electron:runtime && electron-builder --mac dmg --arm64"
+  },
+  "workspaces": [
+    "web"
+  ],
+  "dependencies": {
+    "better-sqlite3": "^12.6.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.0",
+    "typescript": "^5.7.0",
+    "wait-on": "^8.0.0"
+  },
+  "overrides": {
+    "gray-matter": {
+      "js-yaml": "^3.15.2"
+    },
+    "next": {
+      "postcss": "^8.5.28"
+    },
+    "nanoid": "^3.3.19",
+    "defu": "^6.1.7"
+  }
+}

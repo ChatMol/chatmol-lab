@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-label="ChatMol Lab. Harnesses are for horses. Scientists get a lab.">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#c8a84e"/>
+      <stop offset="100%" stop-color="#e8d48e"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#151310"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.18" cy="0.5" r="0.45">
+      <stop offset="0%" stop-color="#c8a84e" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#c8a84e" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="340" rx="18" fill="url(#bg)"/>
+  <rect width="1200" height="340" rx="18" fill="url(#glow)"/>
+
+  <!-- flask, from web/src/app/icon.svg (32 × 32 viewBox), scaled ×6 -->
+  <g transform="translate(96 74) scale(6)" fill="none" stroke="url(#gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M13 6v8.27L8.54 22.1A2.5 2.5 0 0 0 10.78 26h10.44a2.5 2.5 0 0 0 2.24-3.9L19 14.27V6"/>
+    <path d="M12 6h8"/>
+    <circle cx="14" cy="20" r="1.2" fill="url(#gold)" stroke="none"/>
+    <circle cx="18" cy="22" r="1" fill="url(#gold)" stroke="none"/>
+    <circle cx="16.5" cy="18.5" r="0.8" fill="url(#gold)" stroke="none"/>
+  </g>
+
+  <g font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="330" y="132" font-size="64" font-weight="700" fill="#f3efe4" letter-spacing="-1">ChatMol Lab</text>
+    <text x="332" y="188" font-size="27" font-weight="500" fill="url(#gold)">Harnesses are for horses. Scientists get a lab.</text>
+    <text x="332" y="236" font-size="18" fill="#a8a294">Fold, dock, design and analyze proteins from a chat window on your own laptop.</text>
+    <text x="332" y="284" font-size="15" font-weight="600" fill="#7d7869" letter-spacing="2">FREE  ·  macOS &amp; WINDOWS  ·  NO GPU  ·  NO ACCOUNT  ·  BRING YOUR OWN MODEL</text>
+  </g>
+</svg>
