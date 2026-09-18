@@ -4,8 +4,7 @@
 
 Please do not disclose a vulnerability in a public issue. Use GitHub's private
 security-advisory reporting flow for this repository. If that flow is not
-available, contact the maintainers through the security contact listed on the
-ChatMol organization profile.
+available, email contact@cloudmol.org.
 
 Include the affected version, reproduction steps, impact, and any suggested
 mitigation. Do not include real API keys or private research data.

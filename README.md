@@ -23,8 +23,6 @@
   <a href="https://github.com/ChatMol/chatmol-lab/discussions">Discussions</a>
 </p>
 
-<!-- TODO: 20-second GIF of a real session here (fetch 1UBQ → secondary structure → Mol* viewer). This is the single most valuable asset on the page. -->
-
 Your skills still run in Claude Code, Codex and DeepSeek Harness. We just don't make you live there.
 
 ## Ask it things like

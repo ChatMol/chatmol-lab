@@ -14,7 +14,7 @@ info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
 TOOLS="${@:-all}"
-INSTALL_DIR="${HOME}/.eva/tools"
+INSTALL_DIR="${HOME}/.chatmol-lab/tools"
 mkdir -p "$INSTALL_DIR"
 
 install_protenix() {

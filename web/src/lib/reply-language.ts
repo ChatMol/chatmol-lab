@@ -1,14 +1,13 @@
 /**
  * Explicit reply language for the agent.
  *
- * A general "reply in the user's language" rule was not enough on
- * lab.cloudmol.org: replaying the IL-13 session that answered an English request
- * in Chinese, openai/gpt-5.6-luna still answered in Chinese in 2 to 10 of 12
- * runs with that rule, and in 8 of 12 even with every Chinese character removed
- * from the prompt. Naming the language of the user's latest message ("The
- * user's latest message is written in English. Write your reply in English.")
- * gave English in 12 of 12. The server therefore detects the language and states
- * it at the end of the system prompt.
+ * A general "reply in the user's language" rule is not enough: in replays of
+ * a conversation that had drifted into Chinese, the model kept answering an
+ * English request in Chinese in a large share of runs with that rule, even
+ * with every Chinese character removed from the prompt. Naming the language of
+ * the user's latest message ("The user's latest message is written in English.
+ * Write your reply in English.") fixed it in every run. The server therefore
+ * detects the language and states it at the end of the system prompt.
  */
 
 export type ReplyLanguage = "Chinese" | "Japanese" | "Korean" | "English";
