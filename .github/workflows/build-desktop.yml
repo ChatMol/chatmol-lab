@@ -1,9 +1,9 @@
 name: build-desktop
 
 # Pushing a tag like v1.0.0 builds both installers and opens a draft GitHub
-# Release with them attached. Pushes to main only build; the artifacts they
-# leave on the run page expire after 90 days and need a GitHub login, so they
-# are for debugging, not for users.
+# Release with them attached, which is the only place users get them.
+# Pushes to main and pull requests build without keeping the installer, just
+# to prove packaging still works.
 
 on:
   workflow_dispatch:
@@ -45,12 +45,10 @@ jobs:
             target: mac
             builder_args: --mac dmg --arm64
             installer: dist/*.dmg
-            artifact_name: installer-macos-arm64
           - os: windows-latest
             target: win
             builder_args: --win nsis --x64
             installer: dist/*.exe
-            artifact_name: installer-windows-x64
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -75,9 +73,8 @@ jobs:
         run: npx electron-builder ${{ matrix.builder_args }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
-      # A tag publishes straight to the release. Routing 500 MB a run through
-      # artifact storage filled the account's quota and blocked uploads for
-      # hours at a time; the release is where the installers belong anyway.
+      # Straight to the release: release assets do not come out of the
+      # account's Actions storage, which a ~250 MB installer per run exhausts.
       - name: Attach the installer to the release
         if: startsWith(github.ref, 'refs/tags/v')
         shell: bash
@@ -103,16 +100,15 @@ jobs:
           fi
           gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber ${{ matrix.installer }}
 
-      # Only for pushes to main, where there is no release to attach to.
-      - uses: actions/upload-artifact@v4
+      # Pushes to main only prove the installer builds. Keeping a ~250 MB
+      # copy of it needs more Actions storage than the account has, and a
+      # tag already puts the real one on the release.
+      - name: Check the installer was produced
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        with:
-          name: ${{ matrix.artifact_name }}
-          # Only the installer. `dist/*` also picks up the unpacked app
-          # directory and blockmaps, which triples the upload for nothing.
-          path: ${{ matrix.installer }}
-          if-no-files-found: error
-          retention-days: 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -la ${{ matrix.installer }}
 
   checksums:
     if: startsWith(github.ref, 'refs/tags/v')
