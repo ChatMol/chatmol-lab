@@ -195,6 +195,23 @@ for (const name of readdirSync(DOWNLOAD_DIR)) {
   }
 }
 
+// The same invariant applies to the extracted CLI, which was missed: the two
+// platforms store it under different names (wemol-cli vs wemol-cli.exe), so
+// building for one target and then the other left both in build/runtime and
+// every installer shipped the other platform's binary — 6 MB of wemol-cli.exe
+// rode inside the macOS dmg. Clean runners never saw it; a machine that has
+// cross-built does.
+for (const name of readdirSync(PARK_DIR)) {
+  if (name === cfg.wemolOut && !existsSync(path.join(WEMOL_DIR, name))) {
+    renameSync(path.join(PARK_DIR, name), path.join(WEMOL_DIR, name));
+  }
+}
+for (const name of readdirSync(WEMOL_DIR)) {
+  if (name === cfg.wemolOut || name === ".extract") continue;
+  renameSync(path.join(WEMOL_DIR, name), path.join(PARK_DIR, name));
+  console.log(`parked wemol-cli for another target: ${name}`);
+}
+
 await ensureAsset(cfg.miniforge);
 if (cfg.wslMiniforge) {
   await ensureAsset(cfg.wslMiniforge);

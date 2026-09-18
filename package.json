@@ -12,6 +12,7 @@
     "test": "cd web && npm test",
     "harness:verify": "node scripts/harness-verify.mjs",
     "smoke:standalone": "node scripts/smoke-standalone.mjs",
+    "dist:installers": "node scripts/build-installers.mjs",
     "setup": "bash scripts/setup.sh",
     "electron:compile": "cd electron && npx tsc",
     "electron:template-db": "node scripts/create-template-db.mjs",
